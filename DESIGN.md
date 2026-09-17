@@ -46,3 +46,10 @@ stores its question-bank version so later revisions do not rewrite history.
 3. Invitation and respondent flows.
 4. Reports, exports, e-mail, and deployment hardening.
 
+## Production deployment
+
+The production target is a Render web service with managed PostgreSQL. Local
+development may use SQLite, but production must use `DATABASE_URL`. Render
+terminates HTTPS, WhiteNoise serves static assets, and Gunicorn runs the Django
+WSGI application. Administrator and SMTP secrets are supplied only through
+environment variables.

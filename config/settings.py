@@ -1,6 +1,8 @@
 import os
 from pathlib import Path
 
+import dj_database_url
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get("APP_SECRET_KEY", "development-only-change-before-deploy")
@@ -18,6 +20,7 @@ INSTALLED_APPS = [
 ]
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -37,7 +40,13 @@ TEMPLATES = [{
     ]},
 }]
 WSGI_APPLICATION = "config.wsgi.application"
-DATABASES = {"default": {"ENGINE": "django.db.backends.sqlite3", "NAME": BASE_DIR / "assessment.sqlite3"}}
+DATABASES = {
+    "default": dj_database_url.config(
+        default=f"sqlite:///{BASE_DIR / 'assessment.sqlite3'}",
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
+}
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
@@ -49,6 +58,11 @@ TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
 STATIC_URL = "static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
+}
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 LOGIN_URL = "/admin/login/"
 LOGIN_REDIRECT_URL = "/dashboard/"
@@ -59,6 +73,9 @@ EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
 EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "1") == "1"
 DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "assessment@localhost")
+CSRF_TRUSTED_ORIGINS = [
+    origin for origin in os.environ.get("CSRF_TRUSTED_ORIGINS", "").split(",") if origin
+]
 SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_HTTPONLY = True
 SECURE_CONTENT_TYPE_NOSNIFF = True

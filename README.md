@@ -37,3 +37,15 @@ Open `http://127.0.0.1:8000/`. In local mode invitation e-mails are printed to
 the server console; configure the SMTP variables from `.env.example` for real
 delivery. Production deployment must set `APP_DEBUG=0`, a strong
 `APP_SECRET_KEY`, and the public hostname.
+
+## Publish on Render
+
+1. Push this repository to a private GitHub repository.
+2. Create a Render Blueprint from that repository. `render.yaml` provisions
+   the web service and PostgreSQL database.
+3. Enter `ADMIN_EMAIL` and a new strong `ADMIN_PASSWORD` when requested.
+4. Enter SMTP credentials for real invitation delivery.
+5. Open the generated `https://...onrender.com` address and sign in.
+
+Do not reuse the local development password in production. A custom domain can
+be connected later without changing the application.
