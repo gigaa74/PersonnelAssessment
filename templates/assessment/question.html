@@ -1,0 +1,16 @@
+{% extends "assessment/base.html" %}
+{% block title %}Вопрос {{ number }} из {{ total }}{% endblock %}
+{% block content %}
+<section class="card">
+  <p class="muted">Оценка профессиональных и управленческих качеств</p>
+  <h1>Вопрос {{ number }} из {{ total }}</h1>
+  <div class="progress" aria-label="Прогресс {{ progress }}%"><span style="width:{{ progress }}%"></span></div>
+  <h2>{{ question.text }}</h2>
+  <form method="post"{% if number == total %} onsubmit="return confirm('После завершения изменить ответы будет невозможно. Завершить тест?')"{% endif %}>{% csrf_token %}{{ form.as_p }}
+    <div class="actions">
+      {% if number > 1 %}<button class="secondary" name="direction" value="back">Назад</button>{% else %}<span></span>{% endif %}
+      <button name="direction" value="next">{% if number == total %}Завершить тест{% else %}Далее{% endif %}</button>
+    </div>
+  </form>
+</section>
+{% endblock %}

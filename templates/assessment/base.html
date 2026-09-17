@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Оценка персонала{% endblock %}</title>
+  <style>
+    :root { --ink:#172033; --muted:#667085; --blue:#2457d6; --line:#dce2eb; --bg:#f5f7fb; }
+    * { box-sizing:border-box; }
+    body { margin:0; color:var(--ink); background:var(--bg); font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif; }
+    main { width:min(920px,calc(100% - 32px)); margin:48px auto; }
+    .card { background:#fff; border:1px solid var(--line); border-radius:16px; padding:28px; box-shadow:0 8px 28px rgba(23,32,51,.06); }
+    h1 { margin:0 0 10px; font-size:clamp(26px,4vw,38px); line-height:1.15; }
+    h2 { margin:28px 0 12px; }
+    .muted { color:var(--muted); }
+    label { display:block; margin:14px 0 6px; font-weight:600; }
+    input { width:100%; max-width:520px; padding:12px; border:1px solid var(--line); border-radius:10px; font:inherit; }
+    button,.button { display:inline-block; border:0; border-radius:10px; padding:12px 18px; background:var(--blue); color:#fff; font-weight:700; text-decoration:none; cursor:pointer; }
+    button.secondary { background:#e9eefb; color:var(--ink); }
+    .actions { display:flex; gap:10px; justify-content:space-between; margin-top:24px; }
+    table { width:100%; border-collapse:collapse; margin-top:16px; background:#fff; }
+    th,td { padding:12px; border-bottom:1px solid var(--line); text-align:left; }
+    .link { padding:12px; overflow-wrap:anywhere; background:#f7f9fc; border:1px solid var(--line); border-radius:10px; }
+    .progress { height:8px; background:#e7ebf2; border-radius:999px; overflow:hidden; margin:18px 0 28px; }
+    .progress span { display:block; height:100%; background:var(--blue); }
+    ul#id_value { list-style:none; padding:0; }
+    ul#id_value li label { padding:13px 15px; border:1px solid var(--line); border-radius:10px; font-weight:400; cursor:pointer; }
+    ul#id_value input { width:auto; margin-right:10px; }
+    .errorlist { color:#a22121; }
+    @media(max-width:640px){ main{margin:20px auto}.card{padding:20px} table{font-size:14px}.actions{flex-wrap:wrap} }
+  </style>
+</head>
+<body><main>{% block content %}{% endblock %}</main></body>
+</html>
+
