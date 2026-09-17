@@ -8,10 +8,17 @@ from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 
+from .exports import csv_response, pdf_response, xlsx_response
 from .forms import InvitationForm, ResponseForm
+from .mailer import send_invitation
 from .models import Attempt, AuditEvent, Invitation, Response
 from .question_bank import ANSWER_SCALE, QUESTIONS
+from .reports import build_report
 from .services import complete_attempt
+
+
+def home(request):
+    return redirect("assessment:dashboard")
 
 
 @login_required
@@ -27,11 +34,22 @@ def dashboard(request):
         created_link = request.build_absolute_uri(
             reverse("assessment:open_invitation", args=(invitation.public_id, token))
         )
+        send_invitation(invitation.email, created_link)
+        invitation.status = Invitation.Status.SENT
+        invitation.sent_at = timezone.now()
+        invitation.save(update_fields=("status", "sent_at"))
         AuditEvent.objects.create(actor=request.user, invitation=invitation, event_type="invitation_created")
         form = InvitationForm()
-    invitations = Invitation.objects.order_by("-created_at")[:100]
+    invitations = Invitation.objects.order_by("-created_at")
+    status = request.GET.get("status", "")
+    email = request.GET.get("email", "").strip()
+    if status in Invitation.Status.values:
+        invitations = invitations.filter(status=status)
+    if email:
+        invitations = invitations.filter(email__icontains=email)
     return render(request, "assessment/dashboard.html", {
-        "form": form, "invitations": invitations, "created_link": created_link,
+        "form": form, "invitations": invitations[:100], "created_link": created_link,
+        "statuses": Invitation.Status.choices, "selected_status": status, "email_filter": email,
     })
 
 
@@ -102,3 +120,29 @@ def question(request, attempt_id, number):
 
 def completed(request):
     return render(request, "assessment/completed.html")
+
+
+def _completed_invitation(public_id):
+    invitation = get_object_or_404(
+        Invitation.objects.select_related("attempt"), public_id=public_id, status=Invitation.Status.COMPLETED
+    )
+    report = build_report(invitation.attempt.results.all())
+    return invitation, report
+
+
+@login_required
+def result(request, public_id):
+    invitation, report = _completed_invitation(public_id)
+    AuditEvent.objects.create(actor=request.user, invitation=invitation, event_type="result_viewed")
+    chart_data = [{"label": row.label, "value": row.percentage} for row in report["rows"]]
+    return render(request, "assessment/result.html", {"invitation": invitation, "chart_data": chart_data, **report})
+
+
+@login_required
+def export_result(request, public_id, format_name):
+    invitation, report = _completed_invitation(public_id)
+    exporters = {"csv": csv_response, "xlsx": xlsx_response, "pdf": pdf_response}
+    if format_name not in exporters:
+        raise Http404
+    AuditEvent.objects.create(actor=request.user, invitation=invitation, event_type=f"result_exported_{format_name}")
+    return exporters[format_name](invitation, report)

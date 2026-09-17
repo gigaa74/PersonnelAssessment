@@ -73,3 +73,38 @@ class RespondentFlowTests(TestCase):
         self.assertEqual(self.invitation.status, Invitation.Status.COMPLETED)
         self.assertIsNotNone(attempt.completed_at)
         self.assertEqual(self.client.get(open_url).status_code, 410)
+
+
+class ResultAccessTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user("admin", password="strong-test-password")
+        self.invitation, token = Invitation.issue(
+            email="result@example.com", expires_at=timezone.now() + timedelta(days=1)
+        )
+        self.client.get(reverse("assessment:open_invitation", args=(self.invitation.public_id, token)))
+        self.attempt = Attempt.objects.get(invitation=self.invitation)
+        for number in range(1, len(QUESTIONS) + 1):
+            self.client.post(
+                reverse("assessment:question", args=(self.attempt.public_id, number)),
+                {"value": (number % 5) + 1, "direction": "next"},
+            )
+
+    def test_result_and_exports_require_login(self):
+        result_url = reverse("assessment:result", args=(self.invitation.public_id,))
+        self.assertEqual(self.client.get(result_url).status_code, 302)
+        for kind in ("csv", "xlsx", "pdf"):
+            url = reverse("assessment:export_result", args=(self.invitation.public_id, kind))
+            self.assertEqual(self.client.get(url).status_code, 302)
+
+    def test_authenticated_administrator_can_view_and_export(self):
+        self.client.force_login(self.user)
+        result = self.client.get(reverse("assessment:result", args=(self.invitation.public_id,)))
+        self.assertContains(result, "Результаты оценки")
+        self.assertContains(result, "Стратегическое мышление")
+        signatures = {"csv": b"\xef\xbb\xbf", "xlsx": b"PK", "pdf": b"%PDF"}
+        for kind, signature in signatures.items():
+            response = self.client.get(
+                reverse("assessment:export_result", args=(self.invitation.public_id, kind))
+            )
+            self.assertEqual(response.status_code, 200)
+            self.assertTrue(response.content.startswith(signature), kind)

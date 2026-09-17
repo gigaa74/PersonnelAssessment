@@ -1,0 +1,29 @@
+{% extends "assessment/base.html" %}
+{% block title %}Результат {{ invitation.email }}{% endblock %}
+{% block content %}
+<section class="card">
+  <p><a href="{% url 'assessment:dashboard' %}">← К списку</a></p>
+  <h1>Результаты оценки</h1>
+  <p class="muted">{{ invitation.email }} · {{ invitation.completed_at|date:"d.m.Y H:i" }} · 54 вопроса</p>
+  <p>Результат описывает тенденции рабочего поведения и не является психологическим диагнозом или единственным основанием для кадрового решения.</p>
+  <div class="actions"><a class="button" href="{% url 'assessment:export_result' invitation.public_id 'pdf' %}">Скачать PDF</a><a class="button" href="{% url 'assessment:export_result' invitation.public_id 'xlsx' %}">Excel</a><a class="button" href="{% url 'assessment:export_result' invitation.public_id 'csv' %}">CSV</a></div>
+  <h2>Профиль</h2>
+  <canvas id="radar" width="620" height="420" style="width:100%;max-width:620px;height:auto" aria-label="Диаграмма профиля"></canvas>
+  {% for row in rows %}<div class="score"><span>{{ row.label }}</span><div class="bar"><span style="width:{{ row.percentage }}%"></span></div><strong>{{ row.percentage }}%</strong></div>{% endfor %}
+  <h2>Сильные стороны</h2><ul>{% for row in strengths %}<li><strong>{{ row.label }} — {{ row.percentage }}%</strong>: {{ row.interpretation }}</li>{% endfor %}</ul>
+  <h2>Зоны развития</h2><ul>{% for row in development %}<li><strong>{{ row.label }} — {{ row.percentage }}%</strong>: {{ row.recommendation }}</li>{% endfor %}</ul>
+  <h2>Подробная интерпретация</h2>
+  {% for row in rows %}<section class="report-section"><h3>{{ row.label }} — {{ row.percentage }}%</h3><p><strong>Уровень:</strong> {{ row.level_label }}</p><p>{{ row.interpretation }}</p><p><strong>Рекомендация:</strong> {{ row.recommendation }}</p></section>{% endfor %}
+</section>
+{{ chart_data|json_script:"chart-data" }}
+<script>
+(() => {
+  const data=JSON.parse(document.getElementById('chart-data').textContent), c=document.getElementById('radar'),x=c.getContext('2d');
+  const cx=310,cy=205,r=135,n=data.length,point=(i,v)=>{const a=-Math.PI/2+2*Math.PI*i/n;return[cx+Math.cos(a)*r*v,cy+Math.sin(a)*r*v]};
+  x.font='12px system-ui';x.textAlign='center';x.textBaseline='middle';
+  [0.2,0.4,0.6,0.8,1].forEach(level=>{x.beginPath();data.forEach((_,i)=>{const p=point(i,level);i?x.lineTo(...p):x.moveTo(...p)});x.closePath();x.strokeStyle='#dce2eb';x.stroke()});
+  data.forEach((item,i)=>{const p=point(i,1),label=point(i,1.28);x.beginPath();x.moveTo(cx,cy);x.lineTo(...p);x.strokeStyle='#e7ebf2';x.stroke();const words=item.label.split(' ');words.forEach((w,j)=>x.fillText(w,label[0],label[1]+(j-(words.length-1)/2)*14))});
+  x.beginPath();data.forEach((item,i)=>{const p=point(i,item.value/100);i?x.lineTo(...p):x.moveTo(...p)});x.closePath();x.fillStyle='rgba(36,87,214,.18)';x.fill();x.strokeStyle='#2457d6';x.lineWidth=3;x.stroke();
+})();
+</script>
+{% endblock %}
