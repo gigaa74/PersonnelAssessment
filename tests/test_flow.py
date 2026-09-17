@@ -101,6 +101,10 @@ class ResultAccessTests(TestCase):
         result = self.client.get(reverse("assessment:result", args=(self.invitation.public_id,)))
         self.assertContains(result, "Результаты оценки")
         self.assertContains(result, "Стратегическое мышление")
+        self.assertContains(result, "Стрессоустойчивость")
+        self.assertContains(result, "Проявление в работе")
+        self.assertContains(result, "Возможный риск")
+        self.assertContains(result, "Вопросы для интервью")
         signatures = {"csv": b"\xef\xbb\xbf", "xlsx": b"PK", "pdf": b"%PDF"}
         for kind, signature in signatures.items():
             response = self.client.get(

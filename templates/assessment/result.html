@@ -10,10 +10,11 @@
   <h2>Профиль</h2>
   <canvas id="radar" width="620" height="420" style="width:100%;max-width:620px;height:auto" aria-label="Диаграмма профиля"></canvas>
   {% for row in rows %}<div class="score"><span>{{ row.label }}</span><div class="bar"><span style="width:{{ row.percentage }}%"></span></div><strong>{{ row.percentage }}%</strong></div>{% endfor %}
+  <h2>Общий вывод</h2><p>{{ synthesis }}</p>
   <h2>Сильные стороны</h2><ul>{% for row in strengths %}<li><strong>{{ row.label }} — {{ row.percentage }}%</strong>: {{ row.interpretation }}</li>{% endfor %}</ul>
   <h2>Зоны развития</h2><ul>{% for row in development %}<li><strong>{{ row.label }} — {{ row.percentage }}%</strong>: {{ row.recommendation }}</li>{% endfor %}</ul>
   <h2>Подробная интерпретация</h2>
-  {% for row in rows %}<section class="report-section"><h3>{{ row.label }} — {{ row.percentage }}%</h3><p><strong>Уровень:</strong> {{ row.level_label }}</p><p>{{ row.interpretation }}</p><p><strong>Рекомендация:</strong> {{ row.recommendation }}</p></section>{% endfor %}
+  {% for row in rows %}<section class="report-section"><h3>{{ row.label }} — {{ row.percentage }}%</h3><p><strong>Уровень:</strong> {{ row.level_label }}</p><p>{{ row.interpretation }}</p><p><strong>Проявление в работе:</strong> {{ row.work_behavior }}</p><p><strong>Возможный риск:</strong> {{ row.risk }}</p><p><strong>Рекомендация:</strong> {{ row.recommendation }}</p><p><strong>Вопросы для интервью:</strong></p><ul>{% for question in row.interview_questions %}<li>{{ question }}</li>{% endfor %}</ul></section>{% endfor %}
 </section>
 {{ chart_data|json_script:"chart-data" }}
 <script>

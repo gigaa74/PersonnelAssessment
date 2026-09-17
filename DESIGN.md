@@ -16,7 +16,7 @@ or a sufficient basis for an employment decision.
 3. Resumable 54-question assessment, one question per screen.
 4. Six items for each of nine competencies, including reverse-keyed items.
 5. Deterministic scores from 0 to 100.
-6. Administrator-only results, PDF and CSV export.
+6. Administrator-only detailed results, PDF, XLSX and CSV export. Each competency includes a level, workplace manifestation, possible risk, development practice and interview questions. The composure scale is presented to HR users as "Стрессоустойчивость".
 7. SMTP secrets supplied only through environment variables.
 
 ## Scoring

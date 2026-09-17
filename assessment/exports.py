@@ -18,9 +18,9 @@ def csv_response(invitation, report):
     response["Content-Disposition"] = f'attachment; filename="assessment-{invitation.public_id}.csv"'
     response.write("\ufeff")
     writer = csv.writer(response)
-    writer.writerow(("Компетенция", "Процент", "Уровень", "Интерпретация", "Рекомендация"))
+    writer.writerow(("Компетенция", "Процент", "Уровень", "Интерпретация", "Проявление в работе", "Возможный риск", "Рекомендация", "Вопросы для интервью"))
     for row in report["rows"]:
-        writer.writerow((row.label, row.percentage, row.level_label, row.interpretation, row.recommendation))
+        writer.writerow((row.label, row.percentage, row.level_label, row.interpretation, row.work_behavior, row.risk, row.recommendation, " | ".join(row.interview_questions)))
     return response
 
 
@@ -31,10 +31,10 @@ def xlsx_response(invitation, report):
     sheet.append(("Респондент", invitation.email))
     sheet.append(("Дата", invitation.completed_at.strftime("%d.%m.%Y %H:%M") if invitation.completed_at else ""))
     sheet.append(())
-    sheet.append(("Компетенция", "Процент", "Уровень", "Интерпретация", "Рекомендация"))
+    sheet.append(("Компетенция", "Процент", "Уровень", "Интерпретация", "Проявление в работе", "Возможный риск", "Рекомендация", "Вопросы для интервью"))
     for row in report["rows"]:
-        sheet.append((row.label, row.percentage, row.level_label, row.interpretation, row.recommendation))
-    for width, column in zip((30, 12, 18, 75, 75), "ABCDE"):
+        sheet.append((row.label, row.percentage, row.level_label, row.interpretation, row.work_behavior, row.risk, row.recommendation, "\n".join(row.interview_questions)))
+    for width, column in zip((30, 12, 18, 65, 65, 55, 65, 65), "ABCDEFGH"):
         sheet.column_dimensions[column].width = width
     stream = io.BytesIO()
     workbook.save(stream)
@@ -61,7 +61,8 @@ def pdf_response(invitation, report):
         style.fontName = font
     story = [Paragraph("Результаты оценки", styles["Title"]), Spacer(1, 5*mm),
              Paragraph(f"Респондент: {invitation.email}", styles["BodyText"]),
-             Paragraph(f"Дата: {invitation.completed_at.strftime('%d.%m.%Y %H:%M')}", styles["BodyText"]), Spacer(1, 5*mm)]
+             Paragraph(f"Дата: {invitation.completed_at.strftime('%d.%m.%Y %H:%M')}", styles["BodyText"]), Spacer(1, 5*mm),
+             Paragraph("Общий вывод", styles["Heading2"]), Paragraph(report["synthesis"], styles["BodyText"]), Spacer(1, 4*mm)]
     data = [["Компетенция", "%", "Уровень"]] + [[row.label, str(row.percentage), row.level_label] for row in report["rows"]]
     table = Table(data, colWidths=(105*mm, 20*mm, 40*mm), repeatRows=1)
     table.setStyle(TableStyle([("FONTNAME", (0,0), (-1,-1), font), ("BACKGROUND", (0,0), (-1,0), colors.HexColor("#203a67")),
@@ -69,8 +70,13 @@ def pdf_response(invitation, report):
                                ("VALIGN", (0,0), (-1,-1), "MIDDLE"), ("PADDING", (0,0), (-1,-1), 6)]))
     story.extend((table, Spacer(1, 6*mm)))
     for row in report["rows"]:
-        story.extend((Paragraph(f"{row.label} — {row.percentage}%", styles["Heading2"]),
-                      Paragraph(row.interpretation, styles["BodyText"]), Paragraph(f"Рекомендация: {row.recommendation}", styles["BodyText"]), Spacer(1, 3*mm)))
+        questions = "<br/>".join(f"• {question}" for question in row.interview_questions)
+        story.extend((Paragraph(f"{row.label} — {row.percentage}% ({row.level_label})", styles["Heading2"]),
+                      Paragraph(row.interpretation, styles["BodyText"]),
+                      Paragraph(f"<b>Проявление в работе:</b> {row.work_behavior}", styles["BodyText"]),
+                      Paragraph(f"<b>Возможный риск:</b> {row.risk}", styles["BodyText"]),
+                      Paragraph(f"<b>Рекомендация:</b> {row.recommendation}", styles["BodyText"]),
+                      Paragraph(f"<b>Вопросы для интервью:</b><br/>{questions}", styles["BodyText"]), Spacer(1, 4*mm)))
     document.build(story)
     response = HttpResponse(stream.getvalue(), content_type="application/pdf")
     response["Content-Disposition"] = f'attachment; filename="assessment-{invitation.public_id}.pdf"'
