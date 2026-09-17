@@ -1,5 +1,7 @@
 # Personnel Assessment
 
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/gigaa74/PersonnelAssessment)
+
 Standalone Russian-language personnel assessment application.
 
 Implemented:
