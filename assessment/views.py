@@ -40,10 +40,11 @@ def dashboard(request):
         created_link = request.build_absolute_uri(
             reverse("assessment:open_invitation", args=(invitation.public_id, token))
         )
-        send_invitation(invitation.email, created_link)
-        invitation.status = Invitation.Status.SENT
-        invitation.sent_at = timezone.now()
-        invitation.save(update_fields=("status", "sent_at"))
+        if invitation.email:
+            send_invitation(invitation.email, created_link)
+            invitation.status = Invitation.Status.SENT
+            invitation.sent_at = timezone.now()
+            invitation.save(update_fields=("status", "sent_at"))
         AuditEvent.objects.create(actor=request.user, invitation=invitation, event_type="invitation_created")
         form = InvitationForm()
     invitations = Invitation.objects.select_related("attempt").order_by("-created_at")

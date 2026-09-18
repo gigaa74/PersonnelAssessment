@@ -15,7 +15,7 @@
     <button>Найти</button></form>
   <table class="respondents"><thead><tr><th>Респондент</th><th>Назначение</th><th>Статус и результат</th></tr></thead>
     <tbody>{% for item in invitations %}<tr>
-      <td><strong>{{ item.full_name|default:"ФИО не указано" }}</strong><span class="cell-line">{{ item.email }}</span></td>
+      <td><strong>{{ item.full_name|default:"ФИО не указано" }}</strong><span class="cell-line">{{ item.email|default:"E-mail не указан" }}</span></td>
       <td><strong>{{ item.position|default:"Должность не указана" }}</strong><span class="cell-line">{{ item.get_department_display|default:"Подразделение не указано" }}</span><span class="tag">{{ item.get_participant_type_display }}</span> <span class="tag">{{ item.get_position_level_display }}</span></td>
       <td><span class="status status-{{ item.status }}">{{ item.get_status_display }}</span>{% if item.status == 'completed' %}<span class="cell-line">Время: {{ item.attempt.duration_display }}</span><a class="result-link" href="{% url 'assessment:result' item.public_id %}">Открыть результат →</a>{% endif %}</td>
     </tr>{% empty %}<tr><td colspan="3">Приглашений пока нет</td></tr>{% endfor %}</tbody>

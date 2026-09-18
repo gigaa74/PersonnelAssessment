@@ -5,7 +5,7 @@ from .models import Invitation
 
 class InvitationForm(forms.Form):
     full_name = forms.CharField(label="ФИО", max_length=200)
-    email = forms.EmailField(label="E-mail респондента")
+    email = forms.EmailField(label="E-mail респондента (необязательно)", required=False)
     participant_type = forms.ChoiceField(label="Тип тестирования", choices=Invitation.ParticipantType.choices)
     department = forms.ChoiceField(label="Подразделение", choices=(("", "Не указано"), *Invitation.Department.choices), required=False)
     position = forms.CharField(label="Должность или вакансия", max_length=160, required=False)

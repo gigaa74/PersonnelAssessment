@@ -40,7 +40,7 @@ class Invitation(models.Model):
         REVOKED = "revoked", "Отозвано"
 
     public_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
-    email = models.EmailField(db_index=True)
+    email = models.EmailField(db_index=True, blank=True, default="")
     full_name = models.CharField(max_length=200, blank=True)
     participant_type = models.CharField(max_length=16, choices=ParticipantType, default=ParticipantType.EMPLOYEE)
     department = models.CharField(max_length=24, choices=Department, blank=True)
@@ -59,7 +59,7 @@ class Invitation(models.Model):
         return hashlib.sha256(raw_token.encode("utf-8")).hexdigest()
 
     @classmethod
-    def issue(cls, *, email: str, expires_at, **profile):
+    def issue(cls, *, email: str = "", expires_at, **profile):
         raw_token = secrets.token_urlsafe(32)
         invitation = cls.objects.create(
             email=email,

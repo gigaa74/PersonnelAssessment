@@ -19,7 +19,7 @@ def csv_response(invitation, report):
     response.write("\ufeff")
     writer = csv.writer(response)
     writer.writerow(("ФИО", invitation.full_name))
-    writer.writerow(("E-mail", invitation.email))
+    writer.writerow(("E-mail", invitation.email or "Не указан"))
     writer.writerow(("Тип", invitation.get_participant_type_display()))
     writer.writerow(("Подразделение", invitation.get_department_display() if invitation.department else ""))
     writer.writerow(("Должность", invitation.position))
@@ -42,7 +42,7 @@ def xlsx_response(invitation, report):
     sheet = workbook.active
     sheet.title = "Результаты"
     sheet.append(("ФИО", invitation.full_name))
-    sheet.append(("E-mail", invitation.email))
+    sheet.append(("E-mail", invitation.email or "Не указан"))
     sheet.append(("Тип", invitation.get_participant_type_display()))
     sheet.append(("Подразделение", invitation.get_department_display() if invitation.department else ""))
     sheet.append(("Должность", invitation.position))
@@ -88,7 +88,7 @@ def pdf_response(invitation, report):
         style.fontName = font
     story = [Paragraph("Результаты оценки", styles["Title"]), Spacer(1, 5*mm),
              Paragraph(f"ФИО: {invitation.full_name or 'Не указано'}", styles["BodyText"]),
-             Paragraph(f"E-mail: {invitation.email}", styles["BodyText"]),
+             Paragraph(f"E-mail: {invitation.email or 'Не указан'}", styles["BodyText"]),
              Paragraph(f"Тип: {invitation.get_participant_type_display()}", styles["BodyText"]),
              Paragraph(f"Подразделение: {invitation.get_department_display() if invitation.department else 'Не указано'}", styles["BodyText"]),
              Paragraph(f"Должность: {invitation.position or 'Не указана'}", styles["BodyText"]),

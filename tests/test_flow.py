@@ -32,6 +32,19 @@ class AdministratorFlowTests(TestCase):
         self.assertContains(response, str(invitation.public_id))
         self.assertNotContains(response, invitation.token_hash)
 
+    def test_administrator_can_create_invitation_without_email(self):
+        self.client.force_login(self.user)
+        response = self.client.post(reverse("assessment:dashboard"), {
+            "full_name": "Анна Соколова", "email": "",
+            "participant_type": "candidate", "department": "",
+            "position": "Помощник", "position_level": "staff", "validity_days": 7,
+        })
+        self.assertEqual(response.status_code, 200)
+        invitation = Invitation.objects.get()
+        self.assertEqual(invitation.email, "")
+        self.assertEqual(invitation.status, Invitation.Status.CREATED)
+        self.assertContains(response, str(invitation.public_id))
+
 
 class RespondentFlowTests(TestCase):
     def setUp(self):

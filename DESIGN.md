@@ -13,8 +13,8 @@ score, or a sufficient basis for an employment decision.
 ## Current MVP
 
 1. One authenticated HR administrator.
-2. Expiring, single-use invitation with participant name, e-mail, track,
-   department and position.
+2. Expiring, single-use invitation with participant name, optional e-mail,
+   track, department and position. Without e-mail, HR copies and sends the link manually.
 3. Welcome page with purpose, instructions and explicit acknowledgement.
 4. Two preassigned tracks: current employee and candidate.
 5. Thirty original cognitive tasks covering numerical, logical, verbal and
