@@ -6,7 +6,7 @@ from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
-from django.views.decorators.http import require_http_methods
+from django.views.decorators.http import require_http_methods, require_POST
 
 from .exports import csv_response, pdf_response, xlsx_response
 from .cognitive_bank import CognitiveDomain, DOMAIN_LABELS, questions_for
@@ -184,6 +184,18 @@ def result(request, public_id):
     AuditEvent.objects.create(actor=request.user, invitation=invitation, event_type="result_viewed")
     chart_data = [{"label": row.label, "value": row.percentage} for row in report["rows"]]
     return render(request, "assessment/result.html", {"invitation": invitation, "chart_data": chart_data, **report})
+
+
+@login_required
+@require_POST
+@transaction.atomic
+def delete_invitation(request, public_id):
+    invitation = get_object_or_404(Invitation.objects.select_for_update(), public_id=public_id)
+    invitation.auditevent_set.all().delete()
+    if hasattr(invitation, "attempt"):
+        invitation.attempt.delete()
+    invitation.delete()
+    return redirect("assessment:dashboard")
 
 
 @login_required

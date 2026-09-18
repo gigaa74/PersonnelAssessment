@@ -26,6 +26,8 @@ score, or a sufficient basis for an employment decision.
 8. Private HR report with cognitive accuracy, behavioural profile,
    response-quality warnings, development practices and interview prompts.
 9. PDF, XLSX and CSV export. Composure is shown as "Стрессоустойчивость".
+10. HR can clear a generated link from the screen without a reload and can
+    permanently delete an invitation together with its answers and results.
 
 ## Measurement boundaries
 

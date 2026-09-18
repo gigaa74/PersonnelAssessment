@@ -45,6 +45,29 @@ class AdministratorFlowTests(TestCase):
         self.assertEqual(invitation.status, Invitation.Status.CREATED)
         self.assertContains(response, str(invitation.public_id))
 
+    def test_administrator_can_delete_invitation_and_attempt_data(self):
+        invitation, _token = Invitation.issue(
+            full_name="Удаляемый пользователь",
+            expires_at=timezone.now() + timedelta(days=1),
+        )
+        attempt = Attempt.objects.create(invitation=invitation)
+        Response.objects.create(attempt=attempt, question_id="CN01", value=1)
+        delete_url = reverse("assessment:delete_invitation", args=(invitation.public_id,))
+        self.assertEqual(self.client.post(delete_url).status_code, 302)
+        self.assertTrue(Invitation.objects.filter(pk=invitation.pk).exists())
+        self.client.force_login(self.user)
+        response = self.client.post(delete_url)
+        self.assertRedirects(response, reverse("assessment:dashboard"))
+        self.assertFalse(Invitation.objects.filter(pk=invitation.pk).exists())
+        self.assertFalse(Attempt.objects.filter(pk=attempt.pk).exists())
+        self.assertFalse(Response.objects.filter(attempt_id=attempt.pk).exists())
+
+    def test_delete_invitation_rejects_get(self):
+        invitation, _token = Invitation.issue(expires_at=timezone.now() + timedelta(days=1))
+        self.client.force_login(self.user)
+        response = self.client.get(reverse("assessment:delete_invitation", args=(invitation.public_id,)))
+        self.assertEqual(response.status_code, 405)
+
 
 class RespondentFlowTests(TestCase):
     def setUp(self):

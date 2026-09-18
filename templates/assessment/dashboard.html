@@ -4,10 +4,10 @@
 <section class="card">
   <h1>Оценка персонала</h1>
   <p class="muted">Создайте персональную ссылку. Она показывается только один раз и хранится в базе только в виде хеша.</p>
-  <form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit">Создать приглашение</button></form>
+  <form method="post" id="invitation-form">{% csrf_token %}{{ form.as_p }}<button type="submit">Создать приглашение</button></form>
   {% if created_link %}
-    <h2>Персональная ссылка</h2><p class="link" id="invite-link">{{ created_link }}</p>
-    <button type="button" onclick="navigator.clipboard.writeText(document.getElementById('invite-link').innerText)">Скопировать ссылку</button>
+    <div id="created-link-block"><h2>Персональная ссылка</h2><p class="link" id="invite-link">{{ created_link }}</p>
+    <div class="inline-actions"><button type="button" onclick="navigator.clipboard.writeText(document.getElementById('invite-link').innerText)">Скопировать ссылку</button><button class="secondary" type="button" onclick="clearCreatedLink()">Убрать ссылку</button></div></div>
   {% endif %}
   <h2>Респонденты</h2>
   <form method="get" class="filters"><label>E-mail</label><input name="email" value="{{ email_filter }}" placeholder="Поиск по e-mail">
@@ -17,8 +17,16 @@
     <tbody>{% for item in invitations %}<tr>
       <td><strong>{{ item.full_name|default:"ФИО не указано" }}</strong><span class="cell-line">{{ item.email|default:"E-mail не указан" }}</span></td>
       <td><strong>{{ item.position|default:"Должность не указана" }}</strong><span class="cell-line">{{ item.get_department_display|default:"Подразделение не указано" }}</span><span class="tag">{{ item.get_participant_type_display }}</span> <span class="tag">{{ item.get_position_level_display }}</span></td>
-      <td><span class="status status-{{ item.status }}">{{ item.get_status_display }}</span>{% if item.status == 'completed' %}<span class="cell-line">Время: {{ item.attempt.duration_display }}</span><a class="result-link" href="{% url 'assessment:result' item.public_id %}">Открыть результат →</a>{% endif %}</td>
+      <td><span class="status status-{{ item.status }}">{{ item.get_status_display }}</span>{% if item.status == 'completed' %}<span class="cell-line">Время: {{ item.attempt.duration_display }}</span><a class="result-link" href="{% url 'assessment:result' item.public_id %}">Открыть результат →</a>{% endif %}<form class="delete-form" method="post" action="{% url 'assessment:delete_invitation' item.public_id %}" onsubmit="return confirm('{% if item.status == 'completed' %}Удалить результат, ответы и данные респондента без возможности восстановления?{% else %}Удалить приглашение без возможности восстановления?{% endif %}')">{% csrf_token %}<button class="button-danger" type="submit">{% if item.status == 'completed' %}Удалить результат{% else %}Удалить приглашение{% endif %}</button></form></td>
     </tr>{% empty %}<tr><td colspan="3">Приглашений пока нет</td></tr>{% endfor %}</tbody>
   </table>
 </section>
+<script>
+function clearCreatedLink() {
+  const block = document.getElementById("created-link-block");
+  if (block) block.remove();
+  const form = document.getElementById("invitation-form");
+  if (form) { form.reset(); form.querySelector("input:not([type=hidden])")?.focus(); }
+}
+</script>
 {% endblock %}
