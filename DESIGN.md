@@ -21,6 +21,7 @@ score, or a sufficient basis for an employment decision.
    and spatial reasoning.
 6. Fifty-four workplace-behaviour statements covering nine competencies.
 7. Resumable one-question-per-screen flow.
+   The participant sees a live elapsed-time counter; HR sees the final duration.
 8. Private HR report with cognitive accuracy, behavioural profile,
    response-quality warnings, development practices and interview prompts.
 9. PDF, XLSX and CSV export. Composure is shown as "Стрессоустойчивость".

@@ -45,7 +45,7 @@ def dashboard(request):
         invitation.save(update_fields=("status", "sent_at"))
         AuditEvent.objects.create(actor=request.user, invitation=invitation, event_type="invitation_created")
         form = InvitationForm()
-    invitations = Invitation.objects.order_by("-created_at")
+    invitations = Invitation.objects.select_related("attempt").order_by("-created_at")
     status = request.GET.get("status", "")
     email = request.GET.get("email", "").strip()
     if status in Invitation.Status.values:

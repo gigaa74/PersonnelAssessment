@@ -124,6 +124,7 @@ class ResultAccessTests(TestCase):
         self.assertContains(result, "Вопросы для интервью")
         self.assertContains(result, "Когнитивные задачи")
         self.assertContains(result, "не стандартизированный тест IQ")
+        self.assertContains(result, "Время прохождения")
         signatures = {"csv": b"\xef\xbb\xbf", "xlsx": b"PK", "pdf": b"%PDF"}
         for kind, signature in signatures.items():
             response = self.client.get(

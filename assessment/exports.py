@@ -23,6 +23,7 @@ def csv_response(invitation, report):
     writer.writerow(("Тип", invitation.get_participant_type_display()))
     writer.writerow(("Подразделение", invitation.get_department_display() if invitation.department else ""))
     writer.writerow(("Должность", invitation.position))
+    writer.writerow(("Время прохождения", invitation.attempt.duration_display))
     writer.writerow(())
     if report["cognitive"]:
         writer.writerow(("Когнитивные задачи (пилот, не IQ)", "Верно", "Всего", "Точность", "Интерпретация"))
@@ -44,6 +45,7 @@ def xlsx_response(invitation, report):
     sheet.append(("Тип", invitation.get_participant_type_display()))
     sheet.append(("Подразделение", invitation.get_department_display() if invitation.department else ""))
     sheet.append(("Должность", invitation.position))
+    sheet.append(("Время прохождения", invitation.attempt.duration_display))
     sheet.append(("Дата", invitation.completed_at.strftime("%d.%m.%Y %H:%M") if invitation.completed_at else ""))
     sheet.append(())
     if report["quality_warnings"]:
@@ -88,6 +90,7 @@ def pdf_response(invitation, report):
              Paragraph(f"Тип: {invitation.get_participant_type_display()}", styles["BodyText"]),
              Paragraph(f"Подразделение: {invitation.get_department_display() if invitation.department else 'Не указано'}", styles["BodyText"]),
              Paragraph(f"Должность: {invitation.position or 'Не указана'}", styles["BodyText"]),
+             Paragraph(f"Время прохождения: {invitation.attempt.duration_display}", styles["BodyText"]),
              Paragraph(f"Дата: {invitation.completed_at.strftime('%d.%m.%Y %H:%M')}", styles["BodyText"]), Spacer(1, 5*mm),
              Paragraph("Общий вывод", styles["Heading2"]), Paragraph(report["synthesis"], styles["BodyText"]), Spacer(1, 4*mm)]
     if report["quality_warnings"]:

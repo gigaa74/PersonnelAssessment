@@ -80,6 +80,22 @@ class Attempt(models.Model):
     completed_at = models.DateTimeField(null=True, blank=True)
     consented_at = models.DateTimeField(null=True, blank=True)
 
+    @property
+    def duration_seconds(self):
+        if not self.consented_at:
+            return None
+        end = self.completed_at or timezone.now()
+        return max(0, int((end - self.consented_at).total_seconds()))
+
+    @property
+    def duration_display(self):
+        seconds = self.duration_seconds
+        if seconds is None:
+            return "—"
+        hours, remainder = divmod(seconds, 3600)
+        minutes, seconds = divmod(remainder, 60)
+        return f"{hours:02}:{minutes:02}:{seconds:02}"
+
 
 class Response(models.Model):
     attempt = models.ForeignKey(Attempt, on_delete=models.CASCADE, related_name="responses")
