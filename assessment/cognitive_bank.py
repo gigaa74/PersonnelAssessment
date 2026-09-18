@@ -100,8 +100,10 @@ QUESTIONS = (
 )
 
 
-def questions_for(bank_version):
-    return QUESTIONS_V2 if bank_version == "2.0.0-pilot" else QUESTIONS
+def questions_for(bank_version, position_level="staff"):
+    if bank_version == "2.0.0-pilot" or position_level == "leader":
+        return QUESTIONS_V2
+    return QUESTIONS
 
 
 def validate_bank():

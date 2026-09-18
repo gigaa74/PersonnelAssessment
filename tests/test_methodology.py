@@ -19,6 +19,8 @@ class MethodologyTests(unittest.TestCase):
         self.assertEqual(len(EASY_QUESTIONS), 30)
         self.assertIs(questions_for("2.0.0-pilot"), QUESTIONS_V2)
         self.assertIs(questions_for("2.1.0-pilot"), EASY_QUESTIONS)
+        self.assertIs(questions_for("2.1.0-pilot", "leader"), QUESTIONS_V2)
+        self.assertIs(questions_for("2.1.0-pilot", "staff"), EASY_QUESTIONS)
 
     def test_complete_neutral_attempt_scores_every_competency(self):
         responses = {question.id: 3 for question in QUESTIONS}

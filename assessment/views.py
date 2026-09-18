@@ -35,6 +35,7 @@ def dashboard(request):
             participant_type=form.cleaned_data["participant_type"],
             department=form.cleaned_data["department"],
             position=form.cleaned_data["position"],
+            position_level=form.cleaned_data["position_level"],
         )
         created_link = request.build_absolute_uri(
             reverse("assessment:open_invitation", args=(invitation.public_id, token))
@@ -104,7 +105,7 @@ def question(request, attempt_id, number):
         return redirect("assessment:completed")
     if not attempt.consented_at:
         return redirect("assessment:welcome", attempt_id=attempt.public_id)
-    questions = list(QUESTIONS) if attempt.invitation.bank_version == "1.0.0-draft" else [*questions_for(attempt.invitation.bank_version), *QUESTIONS]
+    questions = list(QUESTIONS) if attempt.invitation.bank_version == "1.0.0-draft" else [*questions_for(attempt.invitation.bank_version, attempt.invitation.position_level), *QUESTIONS]
     if not 1 <= number <= len(questions):
         raise Http404
     item = questions[number - 1]

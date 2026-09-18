@@ -25,7 +25,7 @@ class AdministratorFlowTests(TestCase):
         response = self.client.post(reverse("assessment:dashboard"), {
             "full_name": "Иван Петров", "email": "person@example.com",
             "participant_type": "employee", "department": "unit_1",
-            "position": "Мастер", "validity_days": 7,
+            "position": "Мастер", "position_level": "leader", "validity_days": 7,
         })
         self.assertEqual(response.status_code, 200)
         invitation = Invitation.objects.get()

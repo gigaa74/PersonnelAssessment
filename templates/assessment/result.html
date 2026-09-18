@@ -5,7 +5,7 @@
   <p><a href="{% url 'assessment:dashboard' %}">← К списку</a></p>
   <h1>Результаты оценки</h1>
   <p class="muted"><strong>{{ invitation.full_name|default:"ФИО не указано" }}</strong> · {{ invitation.get_participant_type_display }} · {{ invitation.completed_at|date:"d.m.Y H:i" }} · Время прохождения: {{ invitation.attempt.duration_display }}</p>
-  <p>{{ invitation.email }} · {{ invitation.get_department_display|default:"Подразделение не указано" }} · {{ invitation.position|default:"Должность не указана" }}</p>
+  <p>{{ invitation.email }} · {{ invitation.get_department_display|default:"Подразделение не указано" }} · {{ invitation.position|default:"Должность не указана" }} · {{ invitation.get_position_level_display }}</p>
   <p>Результат описывает тенденции рабочего поведения и не является психологическим диагнозом или единственным основанием для кадрового решения.</p>
   <div class="actions"><a class="button" href="{% url 'assessment:export_result' invitation.public_id 'pdf' %}">Скачать PDF</a><a class="button" href="{% url 'assessment:export_result' invitation.public_id 'xlsx' %}">Excel</a><a class="button" href="{% url 'assessment:export_result' invitation.public_id 'csv' %}">CSV</a></div>
   <h2>Качество прохождения</h2>

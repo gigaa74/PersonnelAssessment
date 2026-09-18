@@ -19,6 +19,10 @@ class Invitation(models.Model):
         EMPLOYEE = "employee", "Действующий сотрудник"
         CANDIDATE = "candidate", "Кандидат на трудоустройство"
 
+    class PositionLevel(models.TextChoices):
+        LEADER = "leader", "Руководитель"
+        STAFF = "staff", "Специалист / менеджер / помощник"
+
     class Department(models.TextChoices):
         UNIT_1 = "unit_1", "Отделение 1"
         UNIT_2 = "unit_2", "Отделение 2"
@@ -41,6 +45,7 @@ class Invitation(models.Model):
     participant_type = models.CharField(max_length=16, choices=ParticipantType, default=ParticipantType.EMPLOYEE)
     department = models.CharField(max_length=24, choices=Department, blank=True)
     position = models.CharField(max_length=160, blank=True)
+    position_level = models.CharField(max_length=16, choices=PositionLevel, default=PositionLevel.STAFF)
     token_hash = models.CharField(max_length=64, unique=True, editable=False)
     status = models.CharField(max_length=16, choices=Status, default=Status.CREATED, db_index=True)
     bank_version = models.CharField(max_length=32, default=BANK_VERSION, editable=False)

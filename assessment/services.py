@@ -29,7 +29,7 @@ def complete_attempt(attempt_id: int):
     ])
     cognitive_rows = []
     if attempt.invitation.bank_version != "1.0.0-draft":
-        cognitive_questions = questions_for(attempt.invitation.bank_version)
+        cognitive_questions = questions_for(attempt.invitation.bank_version, attempt.invitation.position_level)
         for domain in DOMAIN_LABELS:
             items = [item for item in cognitive_questions if item.domain == domain]
             correct = sum(responses.get(item.id) == item.correct for item in items)

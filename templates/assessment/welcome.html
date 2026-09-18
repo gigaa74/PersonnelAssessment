@@ -7,6 +7,7 @@
   <p>Вам назначено тестирование: <strong>{{ attempt.invitation.get_participant_type_display }}</strong>.</p>
   {% if attempt.invitation.department %}<p><strong>Подразделение:</strong> {{ attempt.invitation.get_department_display }}</p>{% endif %}
   {% if attempt.invitation.position %}<p><strong>Должность или вакансия:</strong> {{ attempt.invitation.position }}</p>{% endif %}
+  <p><strong>Уровень должности:</strong> {{ attempt.invitation.get_position_level_display }}</p>
   <h2>Как проходит оценка</h2>
   <ol><li>30 заданий на логическое, числовое, вербальное и пространственное мышление.</li><li>54 утверждения о привычном поведении в рабочих ситуациях.</li><li>Профессиональный модуль будет подключаться по выбранной должности.</li></ol>
   <p>Отвечайте самостоятельно, внимательно и без спешки. Если точный ответ неизвестен, выберите наиболее обоснованный вариант. Прогресс сохраняется после каждого ответа.</p>

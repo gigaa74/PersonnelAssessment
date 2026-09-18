@@ -9,6 +9,7 @@ class InvitationForm(forms.Form):
     participant_type = forms.ChoiceField(label="Тип тестирования", choices=Invitation.ParticipantType.choices)
     department = forms.ChoiceField(label="Подразделение", choices=(("", "Не указано"), *Invitation.Department.choices), required=False)
     position = forms.CharField(label="Должность или вакансия", max_length=160, required=False)
+    position_level = forms.ChoiceField(label="Уровень должности", choices=Invitation.PositionLevel.choices)
     validity_days = forms.IntegerField(label="Срок действия, дней", min_value=1, max_value=30, initial=7)
 
 
