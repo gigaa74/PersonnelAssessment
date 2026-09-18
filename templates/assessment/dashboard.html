@@ -13,8 +13,8 @@
   <form method="get" class="filters"><label>E-mail</label><input name="email" value="{{ email_filter }}" placeholder="Поиск по e-mail">
     <label>Статус</label><select name="status"><option value="">Все</option>{% for value,label in statuses %}<option value="{{ value }}"{% if value == selected_status %} selected{% endif %}>{{ label }}</option>{% endfor %}</select>
     <button>Найти</button></form>
-  <table><thead><tr><th>E-mail</th><th>Статус</th><th>Создано</th><th>Результат</th></tr></thead>
-    <tbody>{% for item in invitations %}<tr><td>{{ item.email }}</td><td>{{ item.get_status_display }}</td><td>{{ item.created_at|date:"d.m.Y H:i" }}</td><td>{% if item.status == 'completed' %}<a href="{% url 'assessment:result' item.public_id %}">Посмотреть</a>{% else %}—{% endif %}</td></tr>{% empty %}<tr><td colspan="4">Приглашений пока нет</td></tr>{% endfor %}</tbody>
-  </table>
+  <div class="table-wrap"><table><thead><tr><th>ФИО</th><th>E-mail</th><th>Тип</th><th>Подразделение</th><th>Должность</th><th>Статус</th><th>Результат</th></tr></thead>
+    <tbody>{% for item in invitations %}<tr><td>{{ item.full_name|default:"—" }}</td><td>{{ item.email }}</td><td>{{ item.get_participant_type_display }}</td><td>{{ item.get_department_display|default:"—" }}</td><td>{{ item.position|default:"—" }}</td><td>{{ item.get_status_display }}</td><td>{% if item.status == 'completed' %}<a href="{% url 'assessment:result' item.public_id %}">Посмотреть</a>{% else %}—{% endif %}</td></tr>{% empty %}<tr><td colspan="7">Приглашений пока нет</td></tr>{% endfor %}</tbody>
+  </table></div>
 </section>
 {% endblock %}

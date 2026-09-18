@@ -15,6 +15,18 @@ from .scoring import Competency, Level
 
 
 class Invitation(models.Model):
+    class ParticipantType(models.TextChoices):
+        EMPLOYEE = "employee", "Действующий сотрудник"
+        CANDIDATE = "candidate", "Кандидат на трудоустройство"
+
+    class Department(models.TextChoices):
+        UNIT_1 = "unit_1", "Отделение 1"
+        UNIT_2 = "unit_2", "Отделение 2"
+        UNIT_3 = "unit_3", "Отделение 3"
+        UNIT_4 = "unit_4", "Отделение 4"
+        UNIT_5 = "unit_5", "Отделение 5"
+        UNIT_6 = "unit_6", "Отделение 6"
+        MANAGEMENT = "management", "Департамент управления"
     class Status(models.TextChoices):
         CREATED = "created", "Создано"
         SENT = "sent", "Приглашение отправлено"
@@ -25,6 +37,10 @@ class Invitation(models.Model):
 
     public_id = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     email = models.EmailField(db_index=True)
+    full_name = models.CharField(max_length=200, blank=True)
+    participant_type = models.CharField(max_length=16, choices=ParticipantType, default=ParticipantType.EMPLOYEE)
+    department = models.CharField(max_length=24, choices=Department, blank=True)
+    position = models.CharField(max_length=160, blank=True)
     token_hash = models.CharField(max_length=64, unique=True, editable=False)
     status = models.CharField(max_length=16, choices=Status, default=Status.CREATED, db_index=True)
     bank_version = models.CharField(max_length=32, default=BANK_VERSION, editable=False)
@@ -38,12 +54,13 @@ class Invitation(models.Model):
         return hashlib.sha256(raw_token.encode("utf-8")).hexdigest()
 
     @classmethod
-    def issue(cls, *, email: str, expires_at):
+    def issue(cls, *, email: str, expires_at, **profile):
         raw_token = secrets.token_urlsafe(32)
         invitation = cls.objects.create(
             email=email,
             token_hash=cls.hash_token(raw_token),
             expires_at=expires_at,
+            **profile,
         )
         return invitation, raw_token
 
@@ -61,6 +78,7 @@ class Attempt(models.Model):
     started_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     completed_at = models.DateTimeField(null=True, blank=True)
+    consented_at = models.DateTimeField(null=True, blank=True)
 
 
 class Response(models.Model):
@@ -83,10 +101,20 @@ class CompetencyResult(models.Model):
         constraints = [models.UniqueConstraint(fields=("attempt", "competency"), name="one_result_per_competency")]
 
 
+class CognitiveResult(models.Model):
+    attempt = models.ForeignKey(Attempt, on_delete=models.CASCADE, related_name="cognitive_results")
+    domain = models.CharField(max_length=24)
+    correct = models.PositiveSmallIntegerField()
+    total = models.PositiveSmallIntegerField()
+    percentage = models.PositiveSmallIntegerField(validators=[MinValueValidator(0), MaxValueValidator(100)])
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=("attempt", "domain"), name="one_cognitive_result_per_domain")]
+
+
 class AuditEvent(models.Model):
     actor = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
     invitation = models.ForeignKey(Invitation, null=True, blank=True, on_delete=models.SET_NULL)
     event_type = models.CharField(max_length=48, db_index=True)
     occurred_at = models.DateTimeField(auto_now_add=True, db_index=True)
     metadata = models.JSONField(default=dict, blank=True)
-

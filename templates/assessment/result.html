@@ -4,14 +4,23 @@
 <section class="card">
   <p><a href="{% url 'assessment:dashboard' %}">← К списку</a></p>
   <h1>Результаты оценки</h1>
-  <p class="muted">{{ invitation.email }} · {{ invitation.completed_at|date:"d.m.Y H:i" }} · 54 вопроса</p>
+  <p class="muted"><strong>{{ invitation.full_name|default:"ФИО не указано" }}</strong> · {{ invitation.get_participant_type_display }} · {{ invitation.completed_at|date:"d.m.Y H:i" }}</p>
+  <p>{{ invitation.email }} · {{ invitation.get_department_display|default:"Подразделение не указано" }} · {{ invitation.position|default:"Должность не указана" }}</p>
   <p>Результат описывает тенденции рабочего поведения и не является психологическим диагнозом или единственным основанием для кадрового решения.</p>
   <div class="actions"><a class="button" href="{% url 'assessment:export_result' invitation.public_id 'pdf' %}">Скачать PDF</a><a class="button" href="{% url 'assessment:export_result' invitation.public_id 'xlsx' %}">Excel</a><a class="button" href="{% url 'assessment:export_result' invitation.public_id 'csv' %}">CSV</a></div>
+  <h2>Качество прохождения</h2>
+  {% if quality_warnings %}<div class="warning"><strong>Нужна дополнительная проверка:</strong><ul>{% for warning in quality_warnings %}<li>{{ warning }}</li>{% endfor %}</ul></div>{% else %}<div class="quality-ok">Явных признаков однообразных или исключительно социально желательных ответов не обнаружено.</div>{% endif %}
+  {% if cognitive %}
+  <h2>Когнитивные задачи</h2>
+  <p class="muted">Пилотный показатель точности решения задач. Это не стандартизированный тест IQ и не нормативная оценка интеллекта.</p>
+  {% for row in cognitive %}<div class="metric"><div class="score"><span>{{ row.label }}</span><div class="bar"><span style="width:{{ row.percentage }}%"></span></div><strong>{{ row.correct }}/{{ row.total }}</strong></div><p>{{ row.interpretation }}</p></div>{% endfor %}
+  {% endif %}
   <h2>Профиль</h2>
   <canvas id="radar" width="620" height="420" style="width:100%;max-width:620px;height:auto" aria-label="Диаграмма профиля"></canvas>
   {% for row in rows %}<div class="score"><span>{{ row.label }}</span><div class="bar"><span style="width:{{ row.percentage }}%"></span></div><strong>{{ row.percentage }}%</strong></div>{% endfor %}
   <h2>Общий вывод</h2><p>{{ synthesis }}</p>
-  <h2>Сильные стороны</h2><ul>{% for row in strengths %}<li><strong>{{ row.label }} — {{ row.percentage }}%</strong>: {{ row.interpretation }}</li>{% endfor %}</ul>
+  <h2>Наиболее выраженные особенности профиля</h2><ul>{% for row in profile_highlights %}<li><strong>{{ row.label }} — {{ row.percentage }}%</strong>: {{ row.interpretation }}</li>{% endfor %}</ul>
+  <h2>Подтверждённые сильные стороны</h2>{% if strengths %}<ul>{% for row in strengths %}<li><strong>{{ row.label }} — {{ row.percentage }}%</strong>: {{ row.interpretation }}</li>{% endfor %}</ul>{% else %}<p class="muted">Показателей высокого уровня не выявлено. Это не означает отсутствие сильных сторон: их следует уточнять по рабочим примерам и результатам.</p>{% endif %}
   <h2>Зоны развития</h2><ul>{% for row in development %}<li><strong>{{ row.label }} — {{ row.percentage }}%</strong>: {{ row.recommendation }}</li>{% endfor %}</ul>
   <h2>Подробная интерпретация</h2>
   {% for row in rows %}<section class="report-section"><h3>{{ row.label }} — {{ row.percentage }}%</h3><p><strong>Уровень:</strong> {{ row.level_label }}</p><p>{{ row.interpretation }}</p><p><strong>Проявление в работе:</strong> {{ row.work_behavior }}</p><p><strong>Возможный риск:</strong> {{ row.risk }}</p><p><strong>Рекомендация:</strong> {{ row.recommendation }}</p><p><strong>Вопросы для интервью:</strong></p><ul>{% for question in row.interview_questions %}<li>{{ question }}</li>{% endfor %}</ul></section>{% endfor %}

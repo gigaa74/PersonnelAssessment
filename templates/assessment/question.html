@@ -2,7 +2,7 @@
 {% block title %}Вопрос {{ number }} из {{ total }}{% endblock %}
 {% block content %}
 <section class="card">
-  <p class="muted">Оценка профессиональных и управленческих качеств</p>
+  <p class="eyebrow">{{ module_label }}</p>
   <h1>Вопрос {{ number }} из {{ total }}</h1>
   <div class="progress" aria-label="Прогресс {{ progress }}%"><span style="width:{{ progress }}%"></span></div>
   <h2>{{ question.text }}</h2>

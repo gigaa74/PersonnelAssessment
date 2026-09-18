@@ -121,10 +121,11 @@ def build_report(result_rows):
     rows.sort(key=lambda row: list(Competency).index(row.competency))
     ranked = sorted(rows, key=lambda row: (row.percentage, row.label))
     top = list(reversed(ranked[-3:]))
+    strengths = [row for row in reversed(ranked) if row.percentage >= 61][:3]
     low = ranked[:3]
     synthesis = (
         f"Наиболее выраженные тенденции профиля: {', '.join(row.label.lower() for row in top)}. "
         f"Больше внимания при развитии могут потребовать: {', '.join(row.label.lower() for row in low)}. "
         "Интерпретацию следует сопоставлять с опытом, требованиями роли и примерами реального поведения."
     )
-    return {"rows": rows, "development": low, "strengths": top, "synthesis": synthesis}
+    return {"rows": rows, "development": low, "strengths": strengths, "profile_highlights": top, "synthesis": synthesis}

@@ -8,7 +8,7 @@ from assessment.scoring import Competency, score_assessment
 class MethodologyTests(unittest.TestCase):
     def test_bank_is_structurally_valid(self):
         self.assertEqual(validate_bank(), ())
-        self.assertEqual(BANK_VERSION, "1.0.0-draft")
+        self.assertEqual(BANK_VERSION, "2.0.0-pilot")
 
     def test_bank_has_six_items_per_competency(self):
         for competency in Competency:
@@ -37,4 +37,3 @@ class MethodologyTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

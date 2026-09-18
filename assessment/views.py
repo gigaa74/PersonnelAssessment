@@ -9,7 +9,8 @@ from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 
 from .exports import csv_response, pdf_response, xlsx_response
-from .forms import InvitationForm, ResponseForm
+from .cognitive_bank import CognitiveDomain, DOMAIN_LABELS, QUESTIONS as COGNITIVE_QUESTIONS
+from .forms import ConsentForm, InvitationForm, ResponseForm
 from .mailer import send_invitation
 from .models import Attempt, AuditEvent, Invitation, Response
 from .question_bank import ANSWER_SCALE, QUESTIONS
@@ -30,6 +31,10 @@ def dashboard(request):
         invitation, token = Invitation.issue(
             email=form.cleaned_data["email"],
             expires_at=timezone.now() + timedelta(days=form.cleaned_data["validity_days"]),
+            full_name=form.cleaned_data["full_name"],
+            participant_type=form.cleaned_data["participant_type"],
+            department=form.cleaned_data["department"],
+            position=form.cleaned_data["position"],
         )
         created_link = request.build_absolute_uri(
             reverse("assessment:open_invitation", args=(invitation.public_id, token))
@@ -64,7 +69,23 @@ def open_invitation(request, public_id, token):
         invitation.save(update_fields=("status",))
         AuditEvent.objects.create(invitation=invitation, event_type="assessment_started")
     request.session["assessment_attempt"] = str(attempt.public_id)
-    return redirect("assessment:question", attempt_id=attempt.public_id, number=1)
+    return redirect("assessment:welcome", attempt_id=attempt.public_id)
+
+
+@require_http_methods(["GET", "POST"])
+def welcome(request, attempt_id):
+    attempt = _session_attempt(request, attempt_id)
+    if attempt is None:
+        return redirect("assessment:completed")
+    if attempt.consented_at:
+        return redirect("assessment:question", attempt_id=attempt.public_id, number=1)
+    form = ConsentForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        attempt.consented_at = timezone.now()
+        attempt.save(update_fields=("consented_at", "updated_at"))
+        AuditEvent.objects.create(invitation=attempt.invitation, event_type="assessment_consented")
+        return redirect("assessment:question", attempt_id=attempt.public_id, number=1)
+    return render(request, "assessment/welcome.html", {"attempt": attempt, "form": form})
 
 
 def _session_attempt(request, attempt_id):
@@ -81,12 +102,16 @@ def question(request, attempt_id, number):
     attempt = _session_attempt(request, attempt_id)
     if attempt is None:
         return redirect("assessment:completed")
-    if not 1 <= number <= len(QUESTIONS):
+    if not attempt.consented_at:
+        return redirect("assessment:welcome", attempt_id=attempt.public_id)
+    questions = list(QUESTIONS) if attempt.invitation.bank_version == "1.0.0-draft" else [*COGNITIVE_QUESTIONS, *QUESTIONS]
+    if not 1 <= number <= len(questions):
         raise Http404
-    item = QUESTIONS[number - 1]
+    item = questions[number - 1]
     existing = Response.objects.filter(attempt=attempt, question_id=item.id).first()
     initial = {"value": existing.value} if existing else None
-    form = ResponseForm(request.POST or None, initial=initial, answer_scale=ANSWER_SCALE)
+    answer_scale = item.choices if hasattr(item, "choices") else ANSWER_SCALE
+    form = ResponseForm(request.POST or None, initial=initial, answer_scale=answer_scale)
     if request.method == "POST" and form.is_valid():
         Response.objects.update_or_create(
             attempt=attempt,
@@ -96,11 +121,11 @@ def question(request, attempt_id, number):
         direction = request.POST.get("direction")
         if direction == "back" and number > 1:
             return redirect("assessment:question", attempt_id=attempt.public_id, number=number - 1)
-        if number < len(QUESTIONS):
+        if number < len(questions):
             return redirect("assessment:question", attempt_id=attempt.public_id, number=number + 1)
         answered = set(attempt.responses.values_list("question_id", flat=True))
         first_missing = next(
-            (index for index, question_item in enumerate(QUESTIONS, 1) if question_item.id not in answered),
+            (index for index, question_item in enumerate(questions, 1) if question_item.id not in answered),
             None,
         )
         if first_missing is not None:
@@ -112,9 +137,10 @@ def question(request, attempt_id, number):
         "form": form,
         "question": item,
         "number": number,
-        "total": len(QUESTIONS),
-        "progress": round(number / len(QUESTIONS) * 100),
+        "total": len(questions),
+        "progress": round(number / len(questions) * 100),
         "attempt": attempt,
+        "module_label": "Когнитивные способности" if hasattr(item, "choices") else "Рабочее поведение",
     })
 
 
@@ -127,6 +153,26 @@ def _completed_invitation(public_id):
         Invitation.objects.select_related("attempt"), public_id=public_id, status=Invitation.Status.COMPLETED
     )
     report = build_report(invitation.attempt.results.all())
+    cognitive = []
+    for item in invitation.attempt.cognitive_results.all():
+        label = "Общий показатель" if item.domain == "overall" else DOMAIN_LABELS[CognitiveDomain(item.domain)]
+        if item.percentage >= 80:
+            interpretation = "Высокая точность решения задач этого типа. Результат стоит проверить на более сложных рабочих кейсах."
+        elif item.percentage >= 60:
+            interpretation = "Уверенный базовый результат. Большинство задач решено верно."
+        elif item.percentage >= 40:
+            interpretation = "Базовый уровень проявляется неравномерно. Полезно уточнить стратегию решения задач на интервью."
+        else:
+            interpretation = "Задания этого типа вызвали затруднения. Результат следует сопоставить с опытом, языком и условиями прохождения."
+        cognitive.append({"label": label, "percentage": item.percentage, "correct": item.correct, "total": item.total, "interpretation": interpretation})
+    cognitive.sort(key=lambda row: (row["label"] != "Общий показатель", row["label"]))
+    event = invitation.auditevent_set.filter(event_type="assessment_completed").order_by("-occurred_at").first()
+    quality_warnings = []
+    if event and event.metadata.get("low_variability"):
+        quality_warnings.append("Ответы имеют очень низкую вариативность; профиль следует проверить на интервью.")
+    if event and event.metadata.get("extreme_positive_pattern"):
+        quality_warnings.append("Профиль содержит почти исключительно социально предпочтительные ответы.")
+    report.update({"cognitive": cognitive, "quality_warnings": quality_warnings})
     return invitation, report
 
 
