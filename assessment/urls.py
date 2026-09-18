@@ -13,5 +13,6 @@ urlpatterns = [
     path("completed/", views.completed, name="completed"),
     path("results/<uuid:public_id>/", views.result, name="result"),
     path("results/<uuid:public_id>/delete/", views.delete_invitation, name="delete_invitation"),
+    path("results/delete-selected/", views.delete_selected_invitations, name="delete_selected_invitations"),
     path("results/<uuid:public_id>/export/<str:format_name>/", views.export_result, name="export_result"),
 ]

@@ -1,4 +1,5 @@
 from datetime import timedelta
+import uuid
 
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
@@ -191,10 +192,31 @@ def result(request, public_id):
 @transaction.atomic
 def delete_invitation(request, public_id):
     invitation = get_object_or_404(Invitation.objects.select_for_update(), public_id=public_id)
-    invitation.auditevent_set.all().delete()
-    if hasattr(invitation, "attempt"):
-        invitation.attempt.delete()
-    invitation.delete()
+    _delete_invitations([invitation.pk])
+    return redirect("assessment:dashboard")
+
+
+def _delete_invitations(invitation_ids):
+    AuditEvent.objects.filter(invitation_id__in=invitation_ids).delete()
+    Attempt.objects.filter(invitation_id__in=invitation_ids).delete()
+    Invitation.objects.filter(pk__in=invitation_ids).delete()
+
+
+@login_required
+@require_POST
+@transaction.atomic
+def delete_selected_invitations(request):
+    public_ids = []
+    for raw_value in request.POST.getlist("selected"):
+        try:
+            public_ids.append(uuid.UUID(raw_value))
+        except (ValueError, AttributeError):
+            continue
+    invitation_ids = list(
+        Invitation.objects.select_for_update().filter(public_id__in=public_ids).values_list("pk", flat=True)
+    )
+    if invitation_ids:
+        _delete_invitations(invitation_ids)
     return redirect("assessment:dashboard")
 
 

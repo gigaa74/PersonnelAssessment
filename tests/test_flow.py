@@ -68,6 +68,21 @@ class AdministratorFlowTests(TestCase):
         response = self.client.get(reverse("assessment:delete_invitation", args=(invitation.public_id,)))
         self.assertEqual(response.status_code, 405)
 
+    def test_administrator_can_bulk_delete_selected_only(self):
+        selected_one, _ = Invitation.issue(full_name="Первый", expires_at=timezone.now() + timedelta(days=1))
+        selected_two, _ = Invitation.issue(full_name="Второй", expires_at=timezone.now() + timedelta(days=1))
+        preserved, _ = Invitation.issue(full_name="Оставить", expires_at=timezone.now() + timedelta(days=1))
+        attempt = Attempt.objects.create(invitation=selected_two)
+        Response.objects.create(attempt=attempt, question_id="CN01", value=1)
+        self.client.force_login(self.user)
+        response = self.client.post(reverse("assessment:delete_selected_invitations"), {
+            "selected": [str(selected_one.public_id), str(selected_two.public_id), "invalid"],
+        })
+        self.assertRedirects(response, reverse("assessment:dashboard"))
+        self.assertFalse(Invitation.objects.filter(pk__in=[selected_one.pk, selected_two.pk]).exists())
+        self.assertTrue(Invitation.objects.filter(pk=preserved.pk).exists())
+        self.assertFalse(Response.objects.filter(attempt_id=attempt.pk).exists())
+
 
 class RespondentFlowTests(TestCase):
     def setUp(self):

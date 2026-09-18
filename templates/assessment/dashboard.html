@@ -13,12 +13,16 @@
   <form method="get" class="filters"><label>E-mail</label><input name="email" value="{{ email_filter }}" placeholder="Поиск по e-mail">
     <label>Статус</label><select name="status"><option value="">Все</option>{% for value,label in statuses %}<option value="{{ value }}"{% if value == selected_status %} selected{% endif %}>{{ label }}</option>{% endfor %}</select>
     <button>Найти</button></form>
-  <table class="respondents"><thead><tr><th>Респондент</th><th>Назначение</th><th>Статус и результат</th></tr></thead>
+  <form id="bulk-delete-form" method="post" action="{% url 'assessment:delete_selected_invitations' %}" onsubmit="return confirm('Удалить все выбранные приглашения, ответы и результаты без возможности восстановления?')">{% csrf_token %}
+    <div class="bulk-actions"><label><input id="select-all" type="checkbox" onchange="toggleAll(this.checked)"> Выбрать все</label><button id="bulk-delete-button" class="button-danger" type="submit" disabled>Удалить выбранные</button></div>
+  </form>
+  <table class="respondents"><thead><tr><th class="select-col"></th><th>Респондент</th><th>Назначение</th><th>Статус и результат</th></tr></thead>
     <tbody>{% for item in invitations %}<tr>
+      <td class="select-col"><input class="row-select" form="bulk-delete-form" type="checkbox" name="selected" value="{{ item.public_id }}" aria-label="Выбрать {{ item.full_name|default:item.email }}" onchange="updateBulkButton()"></td>
       <td><strong>{{ item.full_name|default:"ФИО не указано" }}</strong><span class="cell-line">{{ item.email|default:"E-mail не указан" }}</span></td>
       <td><strong>{{ item.position|default:"Должность не указана" }}</strong><span class="cell-line">{{ item.get_department_display|default:"Подразделение не указано" }}</span><span class="tag">{{ item.get_participant_type_display }}</span> <span class="tag">{{ item.get_position_level_display }}</span></td>
       <td><span class="status status-{{ item.status }}">{{ item.get_status_display }}</span>{% if item.status == 'completed' %}<span class="cell-line">Время: {{ item.attempt.duration_display }}</span><a class="result-link" href="{% url 'assessment:result' item.public_id %}">Открыть результат →</a>{% endif %}<form class="delete-form" method="post" action="{% url 'assessment:delete_invitation' item.public_id %}" onsubmit="return confirm('{% if item.status == 'completed' %}Удалить результат, ответы и данные респондента без возможности восстановления?{% else %}Удалить приглашение без возможности восстановления?{% endif %}')">{% csrf_token %}<button class="button-danger" type="submit">{% if item.status == 'completed' %}Удалить результат{% else %}Удалить приглашение{% endif %}</button></form></td>
-    </tr>{% empty %}<tr><td colspan="3">Приглашений пока нет</td></tr>{% endfor %}</tbody>
+    </tr>{% empty %}<tr><td colspan="4">Приглашений пока нет</td></tr>{% endfor %}</tbody>
   </table>
 </section>
 <script>
@@ -27,6 +31,18 @@ function clearCreatedLink() {
   if (block) block.remove();
   const form = document.getElementById("invitation-form");
   if (form) { form.reset(); form.querySelector("input:not([type=hidden])")?.focus(); }
+}
+function updateBulkButton() {
+  const boxes = [...document.querySelectorAll(".row-select")];
+  const selected = boxes.filter(box => box.checked).length;
+  document.getElementById("bulk-delete-button").disabled = selected === 0;
+  const all = document.getElementById("select-all");
+  all.checked = boxes.length > 0 && selected === boxes.length;
+  all.indeterminate = selected > 0 && selected < boxes.length;
+}
+function toggleAll(checked) {
+  document.querySelectorAll(".row-select").forEach(box => { box.checked = checked; });
+  updateBulkButton();
 }
 </script>
 {% endblock %}

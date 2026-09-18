@@ -27,7 +27,8 @@ score, or a sufficient basis for an employment decision.
    response-quality warnings, development practices and interview prompts.
 9. PDF, XLSX and CSV export. Composure is shown as "Стрессоустойчивость".
 10. HR can clear a generated link from the screen without a reload and can
-    permanently delete an invitation together with its answers and results.
+    permanently delete one or multiple invitations together with their answers
+    and results.
 
 ## Measurement boundaries
 
