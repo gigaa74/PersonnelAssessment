@@ -6,7 +6,7 @@ from typing import Final
 from .scoring import Competency, ScoringItem
 
 
-BANK_VERSION: Final = "2.0.0-pilot"
+BANK_VERSION: Final = "2.1.0-pilot"
 ANSWER_SCALE: Final = (
     "Совершенно не согласен",
     "Скорее не согласен",

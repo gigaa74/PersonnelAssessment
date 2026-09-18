@@ -1,7 +1,7 @@
 from django.db import transaction
 from django.utils import timezone
 
-from .cognitive_bank import DOMAIN_LABELS, QUESTIONS as COGNITIVE_QUESTIONS
+from .cognitive_bank import DOMAIN_LABELS, questions_for
 from .models import Attempt, AuditEvent, CognitiveResult, CompetencyResult, Invitation
 from .question_bank import scoring_items
 from .response_quality import evaluate_response_quality
@@ -29,17 +29,18 @@ def complete_attempt(attempt_id: int):
     ])
     cognitive_rows = []
     if attempt.invitation.bank_version != "1.0.0-draft":
+        cognitive_questions = questions_for(attempt.invitation.bank_version)
         for domain in DOMAIN_LABELS:
-            items = [item for item in COGNITIVE_QUESTIONS if item.domain == domain]
+            items = [item for item in cognitive_questions if item.domain == domain]
             correct = sum(responses.get(item.id) == item.correct for item in items)
             cognitive_rows.append(CognitiveResult(
                 attempt=attempt, domain=domain.value, correct=correct, total=len(items),
                 percentage=round(correct / len(items) * 100),
             ))
-        correct = sum(responses.get(item.id) == item.correct for item in COGNITIVE_QUESTIONS)
+        correct = sum(responses.get(item.id) == item.correct for item in cognitive_questions)
         cognitive_rows.append(CognitiveResult(
-            attempt=attempt, domain="overall", correct=correct, total=len(COGNITIVE_QUESTIONS),
-            percentage=round(correct / len(COGNITIVE_QUESTIONS) * 100),
+            attempt=attempt, domain="overall", correct=correct, total=len(cognitive_questions),
+            percentage=round(correct / len(cognitive_questions) * 100),
         ))
         CognitiveResult.objects.bulk_create(cognitive_rows)
     now = timezone.now()

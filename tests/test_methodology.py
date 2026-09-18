@@ -1,5 +1,6 @@
 import unittest
 
+from assessment.cognitive_bank import QUESTIONS as EASY_QUESTIONS, QUESTIONS_V2, questions_for
 from assessment.question_bank import BANK_VERSION, QUESTIONS, scoring_items, validate_bank
 from assessment.response_quality import evaluate_response_quality
 from assessment.scoring import Competency, score_assessment
@@ -8,11 +9,16 @@ from assessment.scoring import Competency, score_assessment
 class MethodologyTests(unittest.TestCase):
     def test_bank_is_structurally_valid(self):
         self.assertEqual(validate_bank(), ())
-        self.assertEqual(BANK_VERSION, "2.0.0-pilot")
+        self.assertEqual(BANK_VERSION, "2.1.0-pilot")
 
     def test_bank_has_six_items_per_competency(self):
         for competency in Competency:
             self.assertEqual(sum(q.competency == competency for q in QUESTIONS), 6)
+
+    def test_cognitive_versions_are_preserved(self):
+        self.assertEqual(len(EASY_QUESTIONS), 30)
+        self.assertIs(questions_for("2.0.0-pilot"), QUESTIONS_V2)
+        self.assertIs(questions_for("2.1.0-pilot"), EASY_QUESTIONS)
 
     def test_complete_neutral_attempt_scores_every_competency(self):
         responses = {question.id: 3 for question in QUESTIONS}

@@ -9,7 +9,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 
 from .exports import csv_response, pdf_response, xlsx_response
-from .cognitive_bank import CognitiveDomain, DOMAIN_LABELS, QUESTIONS as COGNITIVE_QUESTIONS
+from .cognitive_bank import CognitiveDomain, DOMAIN_LABELS, questions_for
 from .forms import ConsentForm, InvitationForm, ResponseForm
 from .mailer import send_invitation
 from .models import Attempt, AuditEvent, Invitation, Response
@@ -104,7 +104,7 @@ def question(request, attempt_id, number):
         return redirect("assessment:completed")
     if not attempt.consented_at:
         return redirect("assessment:welcome", attempt_id=attempt.public_id)
-    questions = list(QUESTIONS) if attempt.invitation.bank_version == "1.0.0-draft" else [*COGNITIVE_QUESTIONS, *QUESTIONS]
+    questions = list(QUESTIONS) if attempt.invitation.bank_version == "1.0.0-draft" else [*questions_for(attempt.invitation.bank_version), *QUESTIONS]
     if not 1 <= number <= len(questions):
         raise Http404
     item = questions[number - 1]

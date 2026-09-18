@@ -17,8 +17,8 @@ score, or a sufficient basis for an employment decision.
    department and position.
 3. Welcome page with purpose, instructions and explicit acknowledgement.
 4. Two preassigned tracks: current employee and candidate.
-5. Thirty original pilot cognitive tasks covering numerical, logical, verbal
-   and spatial reasoning.
+5. Thirty original, deliberately accessible pilot cognitive tasks covering
+   numerical, logical, verbal and spatial reasoning without trick questions.
 6. Fifty-four workplace-behaviour statements covering nine competencies.
 7. Resumable one-question-per-screen flow.
    The participant sees a live elapsed-time counter; HR sees the final duration.
