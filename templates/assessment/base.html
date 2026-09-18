@@ -23,9 +23,13 @@
     .link { padding:12px; overflow-wrap:anywhere; background:#f7f9fc; border:1px solid var(--line); border-radius:10px; }
     .progress { height:8px; background:#e7ebf2; border-radius:999px; overflow:hidden; margin:18px 0 28px; }
     .progress span { display:block; height:100%; background:var(--blue); }
-    ul#id_value { list-style:none; padding:0; }
-    ul#id_value li label { padding:13px 15px; border:1px solid var(--line); border-radius:10px; font-weight:400; cursor:pointer; }
-    ul#id_value input { width:auto; margin-right:10px; }
+    ul#id_value { list-style:none; padding:0; max-width:620px; }
+    ul#id_value li { margin:10px 0; }
+    ul#id_value li label { display:flex; align-items:center; gap:14px; margin:0; padding:14px 16px; border:1px solid var(--line); border-radius:10px; font-weight:500; cursor:pointer; transition:border-color .15s,background .15s; }
+    ul#id_value li label:hover { border-color:var(--blue); background:#f7f9ff; }
+    ul#id_value input[type="radio"] { appearance:none; -webkit-appearance:none; flex:0 0 24px; width:24px; height:24px; margin:0; padding:0; border:2px solid #8993a4; border-radius:4px; background:#fff; cursor:pointer; }
+    ul#id_value input[type="radio"]:checked { border-color:var(--blue); background:var(--blue); box-shadow:inset 0 0 0 5px #fff; }
+    ul#id_value input[type="radio"]:focus-visible { outline:3px solid rgba(36,87,214,.25); outline-offset:2px; }
     .errorlist { color:#a22121; }
     .filters { display:grid; grid-template-columns:1fr 220px auto; gap:10px; align-items:end; }
     .filters label { display:none; }
